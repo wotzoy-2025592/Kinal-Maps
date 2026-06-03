@@ -44,12 +44,21 @@ body {
 }
 #topbar .logo {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #e8e4dc;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#topbar .logo img {
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 3px;
 }
 #topbar .logo span { color: #7ab8d8; }
 #topbar .sep { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
