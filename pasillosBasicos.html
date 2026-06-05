@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinal Street View</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/basicos.css">
+</head>
+<body>
+
+    <div id="map-wrap">
+        
+        <div id="header-mapa">
+            <h1><i class="bi bi-geo-alt-fill text-danger"></i> Kinal Maps</h1>
+            <p>Usa las flechas para explorar e interactuar con el entorno</p>
+        </div>
+        
+        <img id="lienzo-imagen" src="Basicos/pasillos/pasillo_inicial.png" class="imagen-entorno-fullscreen" alt="Vista Kinal">
+
+        <div class="capa-interactiva">
+            
+            <div data-nodo="1" class="hotspot activo" style="top: 70%; left: 50%;">
+                <button onclick="cambiarNodo(2)" class="btn-flecha-maps" title="Avanzar a las gradas"><i class="bi bi-arrow-up"></i></button>
+            </div>
+            <div data-nodo="1" class="hotspot activo" style="top: 65%; left: 20%;">
+                <button onclick="cambiarNodo(5)" class="btn-flecha-maps" title="Ir a Coordinación"><i class="bi bi-arrow-left"></i></button>
+            </div>
+
+            <div data-nodo="2" class="hotspot" style="top: 45%; left: 40%;">
+                <button onclick="abrirPanelFlotante('Módulo de Gradas', 'CONEXIÓN B', 'Gradas principales de acceso arquitectónico hacia los laboratorios tecnológicos del segundo nivel.')" class="btn-marcador-info"><i class="bi bi-info-circle-fill"></i> VER DETALLES DE GRADAS</button>
+            </div>
+            <div data-nodo="2" class="hotspot" style="top: 70%; left: 60%;">
+                <button onclick="cambiarNodo(3)" class="btn-flecha-maps" title="Ir al pasillo de salones"><i class="bi bi-arrow-right"></i></button>
+            </div>
+            <div data-nodo="2" class="hotspot" style="top: 85%; left: 50%;">
+                <button onclick="cambiarNodo(1)" class="btn-flecha-maps" title="Regresar al pasillo inicial"><i class="bi bi-arrow-down"></i></button>
+            </div>
+
+            <div data-nodo="3" class="hotspot" style="top: 45%; left: 55%;">
+                <button onclick="abrirPanelFlotante('Pasillo de Aulas Académicas', 'ZONA CENTRAL', 'Área perimetral destinada al desarrollo de salones teóricos y laboratorios de informática.')" class="btn-marcador-info"><i class="bi bi-info-circle-fill"></i> EXAMINAR AULAS</button>
+            </div>
+            <div data-nodo="3" class="hotspot" style="top: 70%; left: 50%;">
+                <button onclick="cambiarNodo(4)" class="btn-flecha-maps" title="Caminar hacia el balcón"><i class="bi bi-arrow-up"></i></button>
+            </div>
+            <div data-nodo="3" class="hotspot" style="top: 85%; left: 50%;">
+                <button onclick="cambiarNodo(2)" class="btn-flecha-maps" title="Regresar a las gradas"><i class="bi bi-arrow-down"></i></button>
+            </div>
+
+            <div data-nodo="4" class="hotspot" style="top: 45%; left: 62%;">
+                <button onclick="abrirPanelFlotante('Área del Balcón Abierto', 'NIVEL 1', 'Espacio abierto de descanso con vista directa al patio central.')" class="btn-marcador-info"><i class="bi bi-eye-fill"></i> OBSERVACIÓN BALCÓN</button>
+            </div>
+            <div data-nodo="4" class="hotspot" style="top: 85%; left: 50%;">
+                <button onclick="cambiarNodo(3)" class="btn-flecha-maps" title="Regresar al pasillo de salones"><i class="bi bi-arrow-down"></i></button>
+            </div>
+
+            <div data-nodo="5" class="hotspot" style="top: 60%; left: 50%;">
+                <button onclick="cambiarNodo(6)" class="btn-flecha-maps" title="Acercarse a la puerta de Coordinación"><i class="bi bi-arrow-up"></i></button>
+            </div>
+            <div data-nodo="5" class="hotspot" style="top: 85%; left: 50%;">
+                <button onclick="cambiarNodo(1)" class="btn-flecha-maps" title="Regresar al pasillo inicial"><i class="bi bi-arrow-down"></i></button>
+            </div>
+
+            <div data-nodo="6" class="hotspot" style="top: 45%; left: 50%;">
+                <button onclick="abrirPanelFlotante('Oficina de Coordinación', 'CONTROL', 'Entrada directa a las oficinas de control académico y atención al estudiante.')" class="btn-marcador-info"><i class="bi bi-door-closed-fill"></i> DETALLES DE OFICINA</button>
+            </div>
+            <div data-nodo="6" class="hotspot" style="top: 85%; left: 50%;">
+                <button onclick="cambiarNodo(5)" class="btn-flecha-maps" title="Dar un paso atrás"><i class="bi bi-arrow-down"></i></button>
+            </div>
+
+        </div>
+
+        <div id="entry-panel">
+            <div id="ep-txt-titulo" class="ep-title">Lugar</div>
+            <div id="ep-txt-badge" class="ep-badge">Categoría</div>
+            <div id="ep-txt-descripcion" class="ep-desc">Descripción detallada del punto.</div>
+            <button id="entry-go-btn" onclick="cerrarPanelFlotante()">ENTENDIDO / CERRAR</button>
+        </div>
+
+        <div id="indicador-entorno">Entorno: <span id="nombre-lugar-actual" class="text-info fw-bold">Pasillo Inicial</span></div>
+
+    </div>
+
+    <script>
+        const lienzo = document.getElementById('lienzo-imagen');
+        const lugarActualTxt = document.getElementById('nombre-lugar-actual');
+        const panelFlotante = document.getElementById('entry-panel');
+        const epTitulo = document.getElementById('ep-txt-titulo');
+        const epBadge = document.getElementById('ep-txt-badge');
+        const epDescripcion = document.getElementById('ep-txt-descripcion');
+
+        // MAPEO EXACTO REVISANDO EXTENSIONES (.png y .jpg) Y MINÚSCULAS
+        const configNodos = {
+            1: { imagen: "Basicos/pasillos/pasillo_inicial.png", nombre: "Pasillo Inicial" },
+            2: { imagen: "Basicos/pasillos/gradas.jpg", nombre: "Área de Gradas" },
+            3: { imagen: "Basicos/pasillos/salones.png", nombre: "Pasillo de Salones" },
+            4: { imagen: "Basicos/pasillos/balcon.png", nombre: "Zona del Balcón" },
+            5: { imagen: "Basicos/pasillos/Coordinacion.png", nombre: "Pasillo de Coordinación" },
+            6: { imagen: "Basicos/pasillos/Coordinacion-puerta.png", nombre: "Puerta de Coordinación" }
+        };
+
+        function cambiarNodo(numeroNodo) {
+            cerrarPanelFlotante();
+            
+            const nodo = configNodos[numeroNodo];
+            if(nodo) {
+                lienzo.src = nodo.imagen;
+                lugarActualTxt.innerText = nodo.nombre;
+            }
+
+            // Remueve las clases para limpiar los botones anteriores y activa los del nodo actual
+            document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active', 'activo'));
+            document.querySelectorAll(`[data-nodo="${numeroNodo}"]`).forEach(h => h.classList.add('activo'));
+        }
+
+        function abrirPanelFlotante(titulo, badge, descripcion) {
+            epTitulo.innerText = titulo;
+            epBadge.innerText = badge;
+            epDescripcion.innerText = descripcion;
+            panelFlotante.classList.add('visible');
+        }
+
+        function cerrarPanelFlotante() {
+            panelFlotante.classList.remove('visible');
+        }
+    </script>
+</body>
+</html>
