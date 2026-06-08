@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo - Plano de Escaleras y Aulas</title>
+    <style>
+        :root {
+            --bg: #e8e4dc;
+            --paper: #f7f4ef;
+            --ink: #1a1612;
+            --ink-muted: #5a5045;
+            --ink-faint: #9a9080;
+            --accent: #2a6496;
+            --accent-light: #d0e8f5;
+            --route: #c0392b;
+            --border: rgba(100,90,70,0.3);
+            --panel: rgba(247,244,239,0.97);
+            --mono: 'Courier New', 'IBM Plex Mono', monospace;
+            --sans: 'Segoe UI', 'IBM Plex Sans', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--ink);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        #header {
+            height: 52px;
+            background: var(--ink);
+            color: #e8e4dc;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 20px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .logo span { color: #7ab8d8; }
+
+        .separador {
+            width: 1px;
+            height: 28px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        #search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 380px;
+        }
+
+        #search-wrap label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: #9a9da5;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #search-peticion {
+            flex: 1;
+            height: 32px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #e8e4dc;
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 0 12px;
+            outline: none;
+        }
+
+        #search-peticion:focus {
+            border-color: #7ab8d8;
+            background: rgba(255,255,255,0.12);
+        }
+
+        #search-peticion::placeholder {
+            color: #5a5e66;
+        }
+
+        #search-btn {
+            height: 32px;
+            padding: 0 16px;
+            background: #2a6496;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+        }
+
+        #search-btn:hover { background: #3278b0; }
+
+        .mode-btn {
+            height: 32px;
+            padding: 0 14px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: #9a9da5;
+            font-family: var(--mono);
+            font-size: 11px;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+        }
+
+        .mode-btn:hover {
+            color: #e8e4dc;
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .mode-btn.active {
+            color: #7ab8d8;
+            border-color: #7ab8d8;
+        }
+
+        #clear-btn {
+            height: 32px;
+            padding: 0 14px;
+            background: transparent;
+            border: 1px solid rgba(192,57,43,0.5);
+            border-radius: 4px;
+            color: #e07060;
+            font-family: var(--mono);
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        #clear-btn:hover {
+            background: rgba(192,57,43,0.15);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* MAIN LAYOUT */
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .panel-section {
+            border-bottom: 1px solid var(--border);
+            padding: 14px 16px;
+        }
+
+        .panel-title {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: 10px;
+        }
+
+        .route-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .route-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .route-dot.origin { background: #27ae60; }
+        .route-dot.dest { background: #c0392b; }
+
+        .route-name {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .route-name.set {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        #calc-route-btn {
+            width: 100%;
+            height: 36px;
+            margin-top: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+        }
+
+        #calc-route-btn:hover:not(:disabled) { background: #3278b0; }
+        #calc-route-btn:disabled {
+            background: #aaa;
+            cursor: default;
+        }
+
+        #route-info {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            margin-top: 8px;
+            min-height: 18px;
+        }
+
+        /* Leyenda */
+        #legend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-swatch {
+            width: 20px;
+            height: 14px;
+            border: 1px solid rgba(0,0,0,0.12);
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--ink-muted);
+        }
+
+        /* Coordenadas */
+        #coords-display {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            line-height: 1.8;
+        }
+
+        #coords-display span {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        /* Instrucciones */
+        #instructions {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--ink-faint);
+            line-height: 1.9;
+        }
+
+        /* MAPA */
+        #map-wrap {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: #d8d4cc;
+            cursor: grab;
+        }
+
+        #map-wrap.grabbing {
+            cursor: grabbing;
+        }
+
+        #map-canvas-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+        }
+
+        canvas#map {
+            display: block;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
+        /* Brújula */
+        #compass {
+            position: absolute;
+            bottom: 80px;
+            right: 16px;
+            width: 70px;
+            height: 70px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 50;
+        }
+
+        #compass svg {
+            width: 54px;
+            height: 54px;
+        }
+
+        /* Controles de zoom */
+        #zoom-controls {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            z-index: 50;
+        }
+
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink-muted);
+            font-family: var(--mono);
+        }
+
+        .zoom-btn:hover {
+            background: #e8e4dc;
+            color: var(--ink);
+        }
+
+        .zoom-btn:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .zoom-btn:last-child {
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Barra de escala */
+        #scale-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        #scale-line {
+            height: 4px;
+            background: white;
+            width: 100px;
+            border-radius: 2px;
+        }
+
+        #scale-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: white;
+        }
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background: var(--ink);
+            color: #e8e4dc;
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 200;
+            display: none;
+        }
+
+        /* Barra de estado */
+        #status-bar {
+            height: 26px;
+            background: var(--ink);
+            color: #7a7e86;
+            font-family: var(--mono);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 20px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        #status-bar .sb-item span {
+            color: #9ab8d0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <div class="logo">Plano <span>Interactivo</span></div>
+        <div class="separador"></div>
+        <div id="search-wrap">
+            <label>Buscar</label>
+            <input id="search-peticion" type="text" placeholder="Aula, escalera, baño...">
+            <button id="search-btn">IR</button>
+        </div>
+        <div class="separador"></div>
+        <button class="mode-btn active" id="btn-view">Vista</button>
+        <button class="mode-btn" id="btn-origin">+ Origen</button>
+        <button class="mode-btn" id="btn-dest">+ Destino</button>
+        <div class="topbar-right">
+            <button id="clear-btn">Limpiar Ruta</button>
+        </div>
+    </header>
+
+    <main id="main">
+        <div id="sidebar">
+            <section class="panel-section">
+                <div class="panel-title">Ruta</div>
+                <div class="route-field">
+                    <div class="route-dot origin"></div>
+                    <div class="route-name" id="origin-name">Sin seleccionar</div>
+                </div>
+                <div class="route-field">
+                    <div class="route-dot dest"></div>
+                    <div class="route-name" id="dest-name">Sin seleccionar</div>
+                </div>
+                <button id="calc-route-btn" disabled>Calcular Ruta</button>
+                <div id="route-info"></div>
+            </section>
+
+            <section class="panel-section">
+                <div class="panel-title">Leyenda</div>
+                <div id="legend-list">
+                    <div class="legend-item"><div class="legend-swatch" style="background:#e8dcc8"></div><div class="legend-label">Aulas / Salones</div></div>
+                    <div class="legend-item"><div class="legend-swatch" style="background:#c8dce8"></div><div class="legend-label">Escaleras</div></div>
+                    <div class="legend-item"><div class="legend-swatch" style="background:#d8e8c8"></div><div class="legend-label">Pasillos</div></div>
+                    <div class="legend-item"><div class="legend-swatch" style="background:#f0dcc8"></div><div class="legend-label">Baños</div></div>
+                    <div class="legend-item"><div class="legend-swatch" style="background:#e8c8d0"></div><div class="legend-label">Administración</div></div>
+                    <div class="legend-item"><div class="legend-swatch" style="background:#c0392b"></div><div class="legend-label">Ruta calculada</div></div>
+                </div>
+            </section>
+
+            <section class="panel-section">
+                <div class="panel-title">Coordenadas</div>
+                <div id="coords-display">
+                    X: <span id="cx">—</span> &nbsp; Y: <span id="cy">—</span><br>
+                    Zona: <span id="czone">-</span>
+                </div>
+            </section>
+
+            <section class="panel-section" style="flex:1; overflow-y:auto">
+                <div class="panel-title">Instrucciones</div>
+                <div id="instructions">
+                    • Rueda del mouse: zoom<br>
+                    • Arrastrar: desplazar mapa<br>
+                    • Clic simple: ver coordenadas<br>
+                    • Modo "Origen/Destino": seleccionar puntos<br>
+                    • Buscador: centrar en elemento<br>
+                    • "Calcular ruta": trazar camino
+                </div>
+            </section>
+        </div>
+
+        <div id="map-wrap">
+            <div id="map-canvas-wrap">
+                <canvas id="map"></canvas>
+            </div>
+
+            <div id="compass">
+                <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="26" cy="26" r="24" fill="none" stroke="#c0b8a8" stroke-width="1"/>
+                    <polygon points="26,4 29,24 26,22 23,24" fill="#c0392b"/>
+                    <polygon points="26,48 29,28 26,30 23,28" fill="#5a5045"/>
+                    <polygon points="4,26 24,23 22,26 24,29" fill="#5a5045"/>
+                    <polygon points="48,26 28,23 30,26 28,29" fill="#5a5045"/>
+                    <circle cx="26" cy="26" r="3" fill="#1a1612"/>
+                    <text x="26" y="2.5" text-anchor="middle" font-size="7" font-family="Courier New, monospace" fill="#c0392b" font-weight="600">N</text>
+                    <text x="26" y="52" text-anchor="middle" font-size="7" font-family="Courier New, monospace" fill="#5a5045" dominant-baseline="auto">S</text>
+                    <text x="1" y="28.5" text-anchor="start" font-size="7" font-family="Courier New, monospace" fill="#5a5045">O</text>
+                    <text x="51" y="28.5" text-anchor="end" font-size="7" font-family="Courier New, monospace" fill="#5a5045">E</text>
+                </svg>
+            </div>
+            
+            <div id="zoom-controls">
+                <button class="zoom-btn" id="zoom-in">+</button>
+                <button class="zoom-btn" id="zoom-out">−</button>
+            </div>
+            
+            <div id="scale-bar">
+                <div id="scale-line"></div>
+                <div id="scale-label">10 m</div>
+            </div>
+            <div id="tooltip"></div>
+        </div>
+    </main>
+
+    <div id="status-bar">
+        <div class="sb-item">ZOOM: <span id="sb-zoom">100%</span></div>
+        <div class="sb-item">GRID: <span>40 × 50</span></div>
+        <div class="sb-item">CELDA: <span>20px</span></div>
+        <div class="sb-item" id="sb-sel">SELECCIÓN: <span>—</span></div>
+        <div class="sb-item" style="margin-left:auto">Mapa Interactivo - Plano de Escaleras v1.0</div>
+    </div>
+
+    <script>
+        // ============ CONFIGURACIÓN DEL MAPA ============
+        const CELL = 20;          // Tamaño de celda en píxeles
+        const COLS = 50;         // Columnas
+        const ROWS = 40;         // Filas
+        const W = COLS * CELL;    // Ancho canvas
+        const H = ROWS * CELL;    // Alto canvas
+
+        // Tipos de zonas
+        const T = {
+            AULA: 1,
+            ESCALERA: 2,
+            PASILLO: 3,
+            BANIO: 4,
+            ADMIN: 5,
+            VACIO: 0
+        };
+
+        // Colores por tipo
+        const COLORS = {
+            [T.AULA]: '#e8dcc8',
+            [T.ESCALERA]: '#c8dce8',
+            [T.PASILLO]: '#d8e8c8',
+            [T.BANIO]: '#f0dcc8',
+            [T.ADMIN]: '#e8c8d0',
+            [T.VACIO]: '#f0ede6'
+        };
+
+        // Colores de borde por tipo
+        const STROKE = {
+            [T.AULA]: '#b8a880',
+            [T.ESCALERA]: '#7a9cb8',
+            [T.PASILLO]: '#90a060',
+            [T.BANIO]: '#c89060',
+            [T.ADMIN]: '#c08090',
+            [T.VACIO]: '#d0ccc4'
+        };
+
+        // Inicializar grid
+        const grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(T.VACIO));
+
+        function fill(r1, c1, r2, c2, type) {
+            for (let r = r1; r <= r2; r++) {
+                for (let c = c1; c <= c2; c++) {
+                    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+                        grid[r][c] = type;
+                    }
+                }
+            }
+        }
+
+        // ============ CONSTRUCCIÓN DEL PLANO ============
+        // Basado en la imagen "plano-a-recrear.png" que muestra escaleras
+        // y una distribución rectangular de aulas
+
+        // Primero, llenar todo como vacío (fondo)
+        fill(0, 0, ROWS - 1, COLS - 1, T.VACIO);
+
+        // === PASILLOS PRINCIPALES (estructura de calles) ===
+        // Pasillo horizontal central
+        fill(18, 0, 21, COLS - 1, T.PASILLO);
+        // Pasillo horizontal superior
+        fill(3, 0, 5, COLS - 1, T.PASILLO);
+        // Pasillo horizontal inferior
+        fill(34, 0, 36, COLS - 1, T.PASILLO);
+
+        // Pasillos verticales (2 columnas principales)
+        fill(0, 8, ROWS - 1, 11, T.PASILLO);   // Pasillo izquierdo
+        fill(0, 38, ROWS - 1, 41, T.PASILLO);  // Pasillo derecho
+
+        // Pasillo vertical central
+        fill(0, 23, ROWS - 1, 26, T.PASILLO);  // Pasillo central
+
+        // === ESCALERAS (puntos clave del edificio) ===
+        // Escalera 1 - Esquina superior izquierda
+        fill(6, 12, 11, 16, T.ESCALERA);
+        // Escalera 2 - Esquina superior derecha
+        fill(6, 30, 11, 34, T.ESCALERA);
+        // Escalera 3 - Centro izquierdo
+        fill(23, 12, 28, 16, T.ESCALERA);
+        // Escalera 4 - Centro derecho
+        fill(23, 30, 28, 34, T.ESCALERA);
+        // Escalera 5 - Inferior izquierda
+        fill(37, 12, 39, 16, T.ESCALERA);
+        // Escalera 6 - Inferior derecha
+        fill(37, 30, 39, 34, T.ESCALERA);
+
+        // === AULAS (bloques entre pasillos) ===
+        // Bloque superior izquierdo (Aulas A1-A4)
+        fill(6, 0, 17, 7, T.AULA);
+        fill(6, 17, 17, 22, T.AULA);
+        fill(6, 27, 17, 37, T.AULA);
+        fill(6, 42, 17, 49, T.AULA);
+
+        // Bloque central izquierdo (Aulas B1-B4)
+        fill(22, 0, 33, 7, T.AULA);
+        fill(22, 17, 33, 22, T.AULA);
+        fill(22, 27, 33, 37, T.AULA);
+        fill(22, 42, 33, 49, T.AULA);
+
+        // Bloque inferior izquierdo (Aulas C1-C4)
+        fill(37, 0, 39, 7, T.AULA);
+        fill(37, 17, 39, 22, T.AULA);
+        fill(37, 27, 39, 37, T.AULA);
+        fill(37, 42, 39, 49, T.AULA);
+
+        // === BAÑOS ===
+        // Baños en varias ubicaciones estratégicas
+        fill(2, 42, 4, 48, T.BANIO);      // Baño superior derecho
+        fill(14, 42, 16, 48, T.BANIO);     // Baño medio derecho
+        fill(31, 42, 33, 48, T.BANIO);     // Baño inferior derecho
+        fill(31, 2, 33, 6, T.BANIO);       // Baño inferior izquierdo
+
+        // === ADMINISTRACIÓN ===
+        fill(0, 43, 2, 49, T.ADMIN);       // Oficina administración
+        fill(0, 0, 2, 7, T.ADMIN);         // Recepción
+
+        // === ETIQUETAS ===
+        const labels = [];
+
+        function lbl(r, c, text, size = 9, bold = false) {
+            labels.push({ r, c, text, size, bold });
+        }
+
+        // Etiquetas de escaleras
+        lbl(8.5, 14, "ESCALERA 1", 8, true);
+        lbl(8.5, 32, "ESCALERA 2", 8, true);
+        lbl(25.5, 14, "ESCALERA 3", 8, true);
+        lbl(25.5, 32, "ESCALERA 4", 8, true);
+        lbl(38, 14, "ESCALERA 5", 8, true);
+        lbl(38, 32, "ESCALERA 6", 8, true);
+
+        // Etiquetas de aulas
+        lbl(11.5, 3.5, "AULA 101", 8);
+        lbl(11.5, 19.5, "AULA 102", 8);
+        lbl(11.5, 32, "AULA 103", 8);
+        lbl(11.5, 45.5, "AULA 104", 8);
+
+        lbl(27.5, 3.5, "AULA 201", 8);
+        lbl(27.5, 19.5, "AULA 202", 8);
+        lbl(27.5, 32, "AULA 203", 8);
+        lbl(27.5, 45.5, "AULA 204", 8);
+
+        lbl(38, 3.5, "AULA 301", 8);
+        lbl(38, 19.5, "AULA 302", 8);
+        lbl(38, 32, "AULA 303", 8);
+        lbl(38, 45.5, "AULA 304", 8);
+
+        // Etiquetas de pasillos
+        lbl(19.5, 24.5, "PASILLO CENTRAL", 8, true);
+        lbl(3.5, 9.5, "PASILLO OESTE", 7);
+        lbl(3.5, 39.5, "PASILLO ESTE", 7);
+
+        // Etiquetas de baños
+        lbl(3, 45, "BAÑOS", 7);
+        lbl(15, 45, "BAÑOS", 7);
+        lbl(32, 45, "BAÑOS", 7);
+        lbl(32, 4, "BAÑOS", 7);
+
+        // Etiquetas administración
+        lbl(1, 46, "ADMIN", 7, true);
+        lbl(1, 3.5, "RECEPCIÓN", 7, true);
+
+        // Elementos para búsqueda
+        const searchItems = [
+            { name: 'ESCALERA 1', r: 8, c: 14 },
+            { name: 'ESCALERA 2', r: 8, c: 32 },
+            { name: 'ESCALERA 3', r: 25, c: 14 },
+            { name: 'ESCALERA 4', r: 25, c: 32 },
+            { name: 'ESCALERA 5', r: 38, c: 14 },
+            { name: 'ESCALERA 6', r: 38, c: 32 },
+            { name: 'AULA 101', r: 11, c: 3 },
+            { name: 'AULA 102', r: 11, c: 19 },
+            { name: 'AULA 103', r: 11, c: 32 },
+            { name: 'AULA 104', r: 11, c: 45 },
+            { name: 'AULA 201', r: 27, c: 3 },
+            { name: 'AULA 202', r: 27, c: 19 },
+            { name: 'AULA 203', r: 27, c: 32 },
+            { name: 'AULA 204', r: 27, c: 45 },
+            { name: 'AULA 301', r: 38, c: 3 },
+            { name: 'AULA 302', r: 38, c: 19 },
+            { name: 'AULA 303', r: 38, c: 32 },
+            { name: 'AULA 304', r: 38, c: 45 },
+            { name: 'BAÑOS', r: 3, c: 45 },
+            { name: 'ADMIN', r: 1, c: 46 },
+            { name: 'RECEPCIÓN', r: 1, c: 3 },
+            { name: 'PASILLO', r: 19, c: 24 }
+        ];
+
+        // ============ CLASES DEL SISTEMA ============
+
+        // MODELO
+        class MapModel {
+            constructor() {
+                this.grid = grid;
+                this.labels = labels;
+                this.originNode = null;
+                this.destNode = null;
+                this.calculatedRoute = null;
+            }
+
+            getCellName(r, c) {
+                if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return 'Fuera de límites';
+                const type = this.grid[r][c];
+                switch (type) {
+                    case T.AULA: return 'Aula';
+                    case T.ESCALERA: return 'Escalera';
+                    case T.PASILLO: return 'Pasillo';
+                    case T.BANIO: return 'Baño';
+                    case T.ADMIN: return 'Administración';
+                    default: return 'Área común';
+                }
+            }
+
+            clearRoute() {
+                this.originNode = null;
+                this.destNode = null;
+                this.calculatedRoute = null;
+            }
+
+            // Algoritmo A* para encontrar la ruta más corta
+            findRoute() {
+                if (!this.originNode || !this.destNode) return null;
+
+                const start = { r: this.originNode.r, c: this.originNode.c };
+                const goal = { r: this.destNode.r, c: this.destNode.c };
+
+                // Heurística: distancia Manhattan
+                function heuristic(a, b) {
+                    return Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+                }
+
+                // Verificar si una celda es transitable
+                const isWalkable = (r, c) => {
+                    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
+                    const type = grid[r][c];
+                    return type !== T.VACIO;
+                };
+
+                const openSet = [start];
+                const cameFrom = new Map();
+                const gScore = new Map();
+                const fScore = new Map();
+
+                const getKey = (node) => `${node.r},${node.c}`;
+                gScore.set(getKey(start), 0);
+                fScore.set(getKey(start), heuristic(start, goal));
+
+                while (openSet.length > 0) {
+                    // Encontrar el nodo con menor fScore
+                    let current = openSet.reduce((a, b) => 
+                        (fScore.get(getKey(a)) || Infinity) < (fScore.get(getKey(b)) || Infinity) ? a : b
+                    );
+
+                    if (current.r === goal.r && current.c === goal.c) {
+                        // Reconstruir camino
+                        const path = [];
+                        let curr = current;
+                        while (curr) {
+                            path.unshift(curr);
+                            const key = getKey(curr);
+                            const prev = cameFrom.get(key);
+                            curr = prev;
+                        }
+                        this.calculatedRoute = path;
+                        return path;
+                    }
+
+                    const idx = openSet.findIndex(n => n.r === current.r && n.c === current.c);
+                    openSet.splice(idx, 1);
+
+                    // Vecinos (4 direcciones)
+                    const neighbors = [
+                        { r: current.r - 1, c: current.c },
+                        { r: current.r + 1, c: current.c },
+                        { r: current.r, c: current.c - 1 },
+                        { r: current.r, c: current.c + 1 }
+                    ];
+
+                    for (const neighbor of neighbors) {
+                        if (!isWalkable(neighbor.r, neighbor.c)) continue;
+
+                        const tentativeG = (gScore.get(getKey(current)) || Infinity) + 1;
+
+                        if (tentativeG < (gScore.get(getKey(neighbor)) || Infinity)) {
+                            cameFrom.set(getKey(neighbor), current);
+                            gScore.set(getKey(neighbor), tentativeG);
+                            fScore.set(getKey(neighbor), tentativeG + heuristic(neighbor, goal));
+
+                            if (!openSet.some(n => n.r === neighbor.r && n.c === neighbor.c)) {
+                                openSet.push(neighbor);
+                            }
+                        }
+                    }
+                }
+
+                this.calculatedRoute = null;
+                return null;
+            }
+        }
+
+        // VISTA
+        class MapView {
+            constructor() {
+                this.canvas = document.getElementById('map');
+                this.ctx = this.canvas.getContext('2d');
+                this.wrap = document.getElementById('map-canvas-wrap');
+                this.mapWrap = document.getElementById('map-wrap');
+
+                this.canvas.width = W;
+                this.canvas.height = H;
+
+                this.scale = 1.0;
+                this.tx = 0;
+                this.ty = 0;
+            }
+
+            applyTransform() {
+                this.wrap.style.transform = `translate(${this.tx}px, ${this.ty}px) scale(${this.scale})`;
+                document.getElementById('sb-zoom').textContent = Math.round(this.scale * 100) + '%';
+                this.updateScaleBar();
+            }
+
+            updateScaleBar() {
+                const metersPerCell = 0.5;
+                const pxFor10m = (10 / metersPerCell) * CELL * this.scale;
+                const width = Math.min(140, Math.max(50, pxFor10m));
+                document.getElementById('scale-line').style.width = width + 'px';
+                document.getElementById('scale-label').textContent = Math.round(width / this.scale / CELL * metersPerCell) + ' m';
+            }
+
+            centerMap() {
+                this.tx = (this.mapWrap.clientWidth - W * this.scale) / 2;
+                this.ty = (this.mapWrap.clientHeight - H * this.scale) / 2;
+                this.applyTransform();
+            }
+
+            render(model) {
+                this.ctx.clearRect(0, 0, W, H);
+                this.ctx.fillStyle = '#f0ede6';
+                this.ctx.fillRect(0, 0, W, H);
+
+                // Dibujar celdas
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const type = model.grid[r][c];
+                        if (type === T.VACIO) continue;
+                        this.ctx.fillStyle = COLORS[type] || '#f0ede6';
+                        this.ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+                    }
+                }
+
+                // Dibujar bordes
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const type = model.grid[r][c];
+                        if (type === T.VACIO) continue;
+                        const strokeColor = STROKE[type];
+                        if (!strokeColor) continue;
+                        this.ctx.strokeStyle = strokeColor;
+                        this.ctx.lineWidth = 0.8;
+
+                        if (c === 0 || model.grid[r][c - 1] !== type) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(c * CELL, r * CELL);
+                            this.ctx.lineTo(c * CELL, (r + 1) * CELL);
+                            this.ctx.stroke();
+                        }
+                        if (c === COLS - 1 || model.grid[r][c + 1] !== type) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo((c + 1) * CELL, r * CELL);
+                            this.ctx.lineTo((c + 1) * CELL, (r + 1) * CELL);
+                            this.ctx.stroke();
+                        }
+                        if (r === 0 || model.grid[r - 1][c] !== type) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(c * CELL, r * CELL);
+                            this.ctx.lineTo((c + 1) * CELL, r * CELL);
+                            this.ctx.stroke();
+                        }
+                        if (r === ROWS - 1 || model.grid[r + 1][c] !== type) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(c * CELL, (r + 1) * CELL);
+                            this.ctx.lineTo((c + 1) * CELL, (r + 1) * CELL);
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+
+                // Dibujar ruta calculada
+                if (model.calculatedRoute && model.calculatedRoute.length > 1) {
+                    this.ctx.strokeStyle = '#c0392b';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.lineJoin = 'round';
+                    this.ctx.beginPath();
+                    model.calculatedRoute.forEach((node, i) => {
+                        const x = node.c * CELL + CELL / 2;
+                        const y = node.r * CELL + CELL / 2;
+                        if (i === 0) this.ctx.moveTo(x, y);
+                        else this.ctx.lineTo(x, y);
+                    });
+                    this.ctx.stroke();
+                }
+
+                // Dibujar pines de origen/destino
+                if (model.originNode) {
+                    this.drawPin(model.originNode.c * CELL + CELL / 2, model.originNode.r * CELL + CELL / 2, '#27ae60');
+                }
+                if (model.destNode) {
+                    this.drawPin(model.destNode.c * CELL + CELL / 2, model.destNode.r * CELL + CELL / 2, '#c0392b');
+                }
+
+                // Dibujar etiquetas
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                model.labels.forEach(l => {
+                    this.ctx.font = `${l.bold ? 'bold ' : ''}${l.size}px 'Courier New', monospace`;
+                    this.ctx.fillStyle = '#1a1612';
+                    this.ctx.fillText(l.text, l.c * CELL, l.r * CELL);
+                });
+            }
+
+            drawPin(x, y, color) {
+                this.ctx.fillStyle = color;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.strokeStyle = 'white';
+                this.ctx.lineWidth = 1.5;
+                this.ctx.stroke();
+            }
+
+            updateSidebarUI(model) {
+                const origEl = document.getElementById('origin-name');
+                const destEl = document.getElementById('dest-name');
+                const btnCalc = document.getElementById('calc-route-btn');
+
+                if (model.originNode) {
+                    origEl.textContent = `Fila ${model.originNode.r}, Col ${model.originNode.c} (${model.getCellName(model.originNode.r, model.originNode.c)})`;
+                    origEl.classList.add('set');
+                } else {
+                    origEl.textContent = 'Sin seleccionar';
+                    origEl.classList.remove('set');
+                }
+
+                if (model.destNode) {
+                    destEl.textContent = `Fila ${model.destNode.r}, Col ${model.destNode.c} (${model.getCellName(model.destNode.r, model.destNode.c)})`;
+                    destEl.classList.add('set');
+                } else {
+                    destEl.textContent = 'Sin seleccionar';
+                    destEl.classList.remove('set');
+                }
+
+                btnCalc.disabled = !(model.originNode && model.destNode);
+            }
+        }
+
+        // CONTROLADOR
+        class MapController {
+            constructor(model, view) {
+                this.model = model;
+                this.view = view;
+                this.currentMode = 'view';
+                this.isDragging = false;
+                this.startX = 0;
+                this.startY = 0;
+                this.searchItems = searchItems;
+            }
+
+            init() {
+                this.registerEvents();
+                this.view.centerMap();
+                this.view.render(this.model);
+            }
+
+            registerEvents() {
+                document.getElementById('btn-view').addEventListener('click', () => this.setMode('view'));
+                document.getElementById('btn-origin').addEventListener('click', () => this.setMode('origin'));
+                document.getElementById('btn-dest').addEventListener('click', () => this.setMode('dest'));
+                document.getElementById('clear-btn').addEventListener('click', () => {
+                    this.model.clearRoute();
+                    this.view.updateSidebarUI(this.model);
+                    document.getElementById('route-info').textContent = '';
+                    this.view.render(this.model);
+                });
+                document.getElementById('calc-route-btn').addEventListener('click', () => {
+                    const route = this.model.findRoute();
+                    const infoEl = document.getElementById('route-info');
+                    if (route) {
+                        const distancia = (route.length - 1) * 0.5;
+                        infoEl.textContent = `Distancia: ${distancia.toFixed(1)} metros (${route.length - 1} celdas)`;
+                    } else {
+                        infoEl.textContent = 'No se encontró una ruta viable.';
+                    }
+                    this.view.render(this.model);
+                });
+
+                // Zoom con rueda
+                this.view.mapWrap.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const rect = this.view.mapWrap.getBoundingClientRect();
+                    const mx = e.clientX - rect.left;
+                    const my = e.clientY - rect.top;
+                    const oldScale = this.view.scale;
+                    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+                    const newScale = Math.min(4, Math.max(0.3, oldScale * factor));
+                    this.view.tx = mx - (mx - this.view.tx) * (newScale / oldScale);
+                    this.view.ty = my - (my - this.view.ty) * (newScale / oldScale);
+                    this.view.scale = newScale;
+                    this.view.applyTransform();
+                }, { passive: false });
+
+                document.getElementById('zoom-in').addEventListener('click', () => this.zoomAtCenter(1.2));
+                document.getElementById('zoom-out').addEventListener('click', () => this.zoomAtCenter(0.8));
+
+                // Arrastre
+                const wrap = this.view.mapWrap;
+                wrap.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('.zoom-btn')) return;
+                    this.isDragging = true;
+                    wrap.classList.add('grabbing');
+                    this.startX = e.clientX - this.view.tx;
+                    this.startY = e.clientY - this.view.ty;
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!this.isDragging) return;
+                    this.view.tx = e.clientX - this.startX;
+                    this.view.ty = e.clientY - this.startY;
+                    this.view.applyTransform();
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (!this.isDragging) return;
+                    this.isDragging = false;
+                    wrap.classList.remove('grabbing');
+                });
+
+                // Click en canvas
+                this.view.canvas.addEventListener('click', (e) => {
+                    const rect = this.view.canvas.getBoundingClientRect();
+                    const clickX = (e.clientX - rect.left) / this.view.scale;
+                    const clickY = (e.clientY - rect.top) / this.view.scale;
+                    const c = Math.floor(clickX / CELL);
+                    const r = Math.floor(clickY / CELL);
+                    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+                        this.handleGridClick(r, c);
+                    }
+                });
+
+                // Búsqueda
+                document.getElementById('search-btn').addEventListener('click', () => this.executeSearch());
+                document.getElementById('search-peticion').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') this.executeSearch();
+                });
+            }
+
+            setMode(mode) {
+                this.currentMode = mode;
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                if (mode === 'view') document.getElementById('btn-view').classList.add('active');
+                if (mode === 'origin') document.getElementById('btn-origin').classList.add('active');
+                if (mode === 'dest') document.getElementById('btn-dest').classList.add('active');
+            }
+
+            handleGridClick(r, c) {
+                const typeName = this.model.getCellName(r, c);
+                document.getElementById('cx').textContent = c;
+                document.getElementById('cy').textContent = r;
+                document.getElementById('czone').textContent = typeName;
+                document.getElementById('sb-sel').innerHTML = `SELECCIÓN: <span>Fila ${r}, Col ${c} (${typeName})</span>`;
+
+                if (this.currentMode === 'origin') {
+                    this.model.originNode = { r, c };
+                    this.view.updateSidebarUI(this.model);
+                    this.setMode('view');
+                } else if (this.currentMode === 'dest') {
+                    this.model.destNode = { r, c };
+                    this.view.updateSidebarUI(this.model);
+                    this.setMode('view');
+                }
+                this.view.render(this.model);
+            }
+
+            executeSearch() {
+                const query = document.getElementById('search-peticion').value.trim().toLowerCase();
+                if (!query) return;
+
+                const match = this.searchItems.find(item => item.name.toLowerCase().includes(query));
+                if (match) {
+                    this.focusOnCell(match.r, match.c);
+                    this.handleGridClick(Math.floor(match.r), Math.floor(match.c));
+                } else {
+                    alert('No se encontró ningún elemento coincidente.');
+                }
+            }
+
+            focusOnCell(r, c) {
+                const mw = this.view.mapWrap.clientWidth;
+                const mh = this.view.mapWrap.clientHeight;
+                this.view.scale = 1.8;
+                this.view.tx = mw / 2 - (c * CELL) * this.view.scale;
+                this.view.ty = mh / 2 - (r * CELL) * this.view.scale;
+                this.view.applyTransform();
+            }
+
+            zoomAtCenter(factor) {
+                const oldScale = this.view.scale;
+                const newScale = Math.min(4, Math.max(0.3, oldScale * factor));
+                const cx = this.view.mapWrap.clientWidth / 2;
+                const cy = this.view.mapWrap.clientHeight / 2;
+                this.view.tx = cx - (cx - this.view.tx) * (newScale / oldScale);
+                this.view.ty = cy - (cy - this.view.ty) * (newScale / oldScale);
+                this.view.scale = newScale;
+                this.view.applyTransform();
+            }
+        }
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', () => {
+            const model = new MapModel();
+            const view = new MapView();
+            const controller = new MapController(model, view);
+            controller.init();
+
+            window.addEventListener('resize', () => {
+                view.centerMap();
+                view.render(model);
+            });
+        });
+    </script>
+</body>
+</html>
