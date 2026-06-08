@@ -76,6 +76,30 @@ export class MapController {
       wrap.classList.remove('grabbing');
     });
 
+    //Zoom funcional con el SCROLL
+this.view.mapWrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  
+  const rect = this.view.mapWrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  
+  const factor = e.deltaY < 0 ? 1.12 : 0.89;
+  const ns = Math.min(4, Math.max(0.3, this.view.scale * factor));  
+  
+  // Fórmula de zoom centrado en el cursor
+  this.view.tx = mx - (mx - this.view.tx) * (ns / this.view.scale); 
+  this.view.ty = my - (my - this.view.ty) * (ns / this.view.scale); 
+  this.view.scale = ns;                                              
+  
+  this.view.applyTransform();                                        
+  
+  const sbZoom = document.getElementById('sb-zoom');
+  if (sbZoom) {
+    sbZoom.textContent = Math.round(this.view.scale * 100) + '%';
+  }
+}, { passive: false });
+
     // Click sobre celdas del Canvas
     this.view.canvas.addEventListener('click', (e) => {
       const rect = this.view.canvas.getBoundingClientRect();
