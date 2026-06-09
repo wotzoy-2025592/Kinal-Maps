@@ -1,8 +1,8 @@
-const CELL = 24;
-const COLS = 80;
-const ROWS = 55;
-const W = COLS * CELL;
-const H = ROWS * CELL;
+const CELDA = 24;
+const COLUMNAS = 80;
+const FILAS = 55;
+const ANCHO = COLUMNAS * CELDA;
+const ALTO = FILAS * CELDA;
 
 
 const T = {
@@ -36,7 +36,7 @@ const T = {
 };
 
 
-const COLORS = {
+const COLORES = {
     [T.salonH24izq]:        '#b0b0b0',
     [T.salonH23]:           '#b0b0b0',
     [T.salonH22]:           '#b0b0b0',
@@ -66,7 +66,7 @@ const COLORS = {
     [T.pasilloHorizontalDer]: '#f5c842',
 };
 
-const STROKE = {
+const BORDE = {
     [T.salonH24izq]:        '#555',
     [T.salonH23]:           '#555',
     [T.salonH22]:           '#555',
@@ -98,35 +98,35 @@ const STROKE = {
 
 
 const listaEtiquetas = [];
-function agregarEtiqueta(r, c, texto, tam, negrita) {
-    listaEtiquetas.push({ r, c, texto, tam: tam || 10, negrita: negrita || false });
+function agregarEtiqueta(fila, columna, texto, tamano, negrita) {
+    listaEtiquetas.push({ fila, columna, texto, tamano: tamano || 10, negrita: negrita || false });
 }
 
 
 const lugaresEnMapa = [
-    { nombre: 'Clase H24',        r: 14, c: 5  },
-    { nombre: 'Clase H23',        r: 22, c: 5  },
-    { nombre: 'Clase H22',        r: 30, c: 5  },
-    { nombre: 'Clase G25',        r: 8,  c: 27 },
-    { nombre: 'Clase G24',        r: 14, c: 27 },
-    { nombre: 'SS',               r: 20, c: 24 },
-    { nombre: 'Clase G21',        r: 26, c: 24 },
-    { nombre: 'Coordinacion',     r: 4,  c: 27 },
-    { nombre: 'Oficina 1',        r: 35, c: 42 },
-    { nombre: 'Oficina 2',        r: 40, c: 42 },
-    { nombre: 'Tics',             r: 46, c: 47 },
-    { nombre: 'Sala de Reuniones',r: 18, c: 62 },
-    { nombre: 'Clase B22',        r: 22, c: 73 },
-    { nombre: 'Clase B21',        r: 30, c: 73 },
-    { nombre: 'Gradas H',         r: 8,  c: 18 },
-    { nombre: 'Gradas G',         r: 28, c: 36 },
-    { nombre: 'Gradas B',         r: 26, c: 68 },
+    { nombre: 'Clase H24',        fila: 14, columna: 5  },
+    { nombre: 'Clase H23',        fila: 22, columna: 5  },
+    { nombre: 'Clase H22',        fila: 30, columna: 5  },
+    { nombre: 'Clase G25',        fila: 8,  columna: 27 },
+    { nombre: 'Clase G24',        fila: 14, columna: 27 },
+    { nombre: 'SS',               fila: 20, columna: 24 },
+    { nombre: 'Clase G21',        fila: 26, columna: 24 },
+    { nombre: 'Coordinacion',     fila: 4,  columna: 27 },
+    { nombre: 'Oficina 1',        fila: 35, columna: 42 },
+    { nombre: 'Oficina 2',        fila: 40, columna: 42 },
+    { nombre: 'Tics',             fila: 46, columna: 47 },
+    { nombre: 'Sala de Reuniones',fila: 18, columna: 62 },
+    { nombre: 'Clase B22',        fila: 22, columna: 73 },
+    { nombre: 'Clase B21',        fila: 30, columna: 73 },
+    { nombre: 'Gradas H',         fila: 8,  columna: 18 },
+    { nombre: 'Gradas G',         fila: 28, columna: 36 },
+    { nombre: 'Gradas B',         fila: 26, columna: 68 },
 ];
 
 //Modelo del mapa 
 class ModeloMapa {
     constructor() {
-        this.grilla = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+        this.grilla = Array.from({ length: FILAS }, () => new Array(COLUMNAS).fill(0));
         this.etiquetas = [];
         this.nodoOrigen = null;
         this.nodoDestino = null;
@@ -136,39 +136,39 @@ class ModeloMapa {
         this.construirEtiquetas();
     }
 
-    rellenar(r1, c1, r2, c2, tipo) {
-        for (let r = r1; r <= r2; r++) {
-            for (let c = c1; c <= c2; c++) {
-                if (r >= 0 && r < ROWS && c >= 0 && c < COLS)
-                    this.grilla[r][c] = tipo;
+    rellenar(filaInicio, columnaInicio, filaFin, columnaFin, tipo) {
+        for (let fila = filaInicio; fila <= filaFin; fila++) {
+            for (let columna = columnaInicio; columna <= columnaFin; columna++) {
+                if (fila >= 0 && fila < FILAS && columna >= 0 && columna < COLUMNAS)
+                    this.grilla[fila][columna] = tipo;
             }
         }
     }
 
-    etq(r, c, texto, tam, negrita) {
-        this.etiquetas.push({ r, c, texto, tam: tam || 10, negrita: negrita || false });
+    etq(fila, columna, texto, tamano, negrita) {
+        this.etiquetas.push({ fila, columna, texto, tamano: tamano || 10, negrita: negrita || false });
     }
 
     construirGrilla() {
 
         // clase h24 
-        this.rellenar(8,  0, 18, 10, T.salonH24izq);
+        this.rellenar(7,  0, 15, 10, T.salonH24izq);
 
         // clase h23 
-        this.rellenar(19, 0, 27, 10, T.salonH23);
+        this.rellenar(15, 0, 22, 10, T.salonH23);
 
         // clase h22
-        this.rellenar(28, 0, 36, 10, T.salonH22);
+        this.rellenar(22, 0, 28, 10, T.salonH22);
 
         // Pasillo 
-        this.rellenar(8, 11, 36, 14, T.pasilloBloqueH);
+        this.rellenar(7, 11, 24, 14, T.pasilloBloqueH);
 
         // Gradas 
-        this.rellenar(6, 15, 11, 19, T.gradasBloqueH);
+        this.rellenar(7, 15, 11, 19, T.gradasBloqueH);
 
         // salones
-        this.rellenar(8,  15, 12, 19, T.miniSalonH25);
-        this.rellenar(14, 15, 18, 19, T.miniSalonH26);
+        this.rellenar(11,  15, 18, 19, T.miniSalonH25);
+        this.rellenar(15, 15, 18, 19, T.miniSalonH26);
 
         // Pasillo 
         this.rellenar(20, 15, 22, 19, T.pasilloConectorH);
@@ -177,77 +177,74 @@ class ModeloMapa {
         // Bloque G central
 
         // Coordinacion 
-        this.rellenar(0, 22, 5, 31, T.coordinacion);
+        this.rellenar(2, 22, 5, 38, T.coordinacion);
 
         // Salon Clase G25
-        this.rellenar(6, 22, 13, 31, T.salonG25);
+        this.rellenar(6, 22, 15, 29, T.salonG25);
 
         // Pasillo vertical 
-        this.rellenar(6, 32, 30, 35, T.pasilloCentral);
+        this.rellenar(6, 30, 29, 34, T.pasilloCentral);
 
         // Salon Clase G24
-        this.rellenar(14, 22, 19, 31, T.salonG24);
+        this.rellenar(14, 22, 19, 29, T.salonG24);
 
         // Servicios SS
         this.rellenar(20, 22, 22, 25, T.serviciosSS);
 
         // Salon Clase G21 
-        this.rellenar(23, 22, 31, 31, T.salonG21);
+        this.rellenar(20, 22, 31, 29, T.salonG21);
 
         // Pasillo horizontal
         this.rellenar(20, 22, 22, 35, T.pasilloCentral);
-
-        //  corredor del centro 
-        this.rellenar(6,  32, 22, 38, T.pasilloCentral);
+          //  corredor del centro 
+        this.rellenar(6,  29, 22, 38, T.pasilloCentral);
         this.rellenar(22, 36, 26, 41, T.pasilloCentral);
-        this.rellenar(26, 38, 30, 44, T.pasilloCentral);
+        this.rellenar(26, 30, 30, 44, T.pasilloCentral);
 
         // Gradas G 
-        this.rellenar(28, 32, 32, 36, T.gradasG);
+        this.rellenar(28, 42, 31, 46, T.gradasG);
 
         // Gradas conector 
-        this.rellenar(25, 36, 29, 40, T.gradasConector);
-
-        // tics
+        this.rellenar(22, 39, 25, 41, T.gradasConector);
 
         // Oficina 1
-        this.rellenar(32, 38, 37, 45, T.oficina1);
+        this.rellenar(32, 37, 38, 42, T.oficina1);
 
         // Oficina 2
-        this.rellenar(38, 38, 43, 45, T.oficina2);
+        this.rellenar(38, 37, 43, 42, T.oficina2);
 
-        // Laboratorio Tics (gran salon gris abajo)
-        this.rellenar(39, 43, 51, 54, T.laboratorioTics);
+        // Tics 
+        this.rellenar(44, 43, 51, 52, T.laboratorioTics);
 
         // Pasillo diagonal
 
         // Pasillo principal hacia bloque B (diagonal-derecha)
-        this.rellenar(22, 44, 34, 50, T.pasilloEste);
-        this.rellenar(24, 50, 30, 54, T.pasilloEste);
+        this.rellenar(26, 43, 43, 54, T.pasilloEste);
+        this.rellenar(24, 50, 38, 50, T.pasilloEste);
 
-        // Area verde
-        this.rellenar(22, 50, 26, 55, T.areaVerde);
+        // Area descod
+        this.rellenar(26, 54, 29, 56, T.areaVerde);
 
         // Bloque B d
 
-        // Sala de Reuniones (grande gris superior derecha)
-        this.rellenar(13, 57, 24, 70, T.salaReuniones);
+        // Sala de Reuniones 
+        this.rellenar(13, 57, 24, 67, T.salaReuniones);
 
-        // Preceptorias (pequeños cuadros grises en medio)
+        // Preceptorias 
         this.rellenar(25, 57, 29, 62, T.preceptorias);
         this.rellenar(25, 63, 29, 67, T.preceptorias);
 
         // Pasillo horizontal derecho (amarillo que conecta a salones B)
-        this.rellenar(26, 68, 28, 78, T.pasilloHorizontalDer);
+        this.rellenar(30, 55, 35, 78, T.pasilloHorizontalDer);
 
         // Gradas bloque B
-        this.rellenar(24, 68, 27, 71, T.gradasBloqueB);
+        this.rellenar(26, 68, 29, 71, T.gradasBloqueB);
 
-        // Salon clase h24 superior derecha
-        this.rellenar(16, 71, 24, 79, T.salonB22der);
+        // Salon clase h24 
+        this.rellenar(22, 71, 29, 79, T.salonB22der);
 
         // Salon clase h24 inferior derecha (debajo)
-        this.rellenar(28, 71, 36, 79, T.salonB21der);
+        this.rellenar(36, 71, 45, 79, T.salonB21der);
     }
 
     construirEtiquetas() {
@@ -302,9 +299,9 @@ class ModeloMapa {
         this.etq(32,   75,   'clase\nh24', 10, true);
     }
 
-    obtenerNombreZona(r, c) {
-        if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return 'Fuera de límites';
-        const tipo = this.grilla[r][c];
+    obtenerNombreZona(fila, columna) {
+        if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) return 'Fuera de limites';
+        const tipo = this.grilla[fila][columna];
         for (let clave in T) {
             if (T[clave] === tipo) return clave;
         }
@@ -317,32 +314,37 @@ class ModeloMapa {
         const inicio = this.nodoOrigen;
         const fin    = this.nodoDestino;
 
-        const visitado = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
-        const padre    = Array.from({ length: ROWS }, () => new Array(COLS).fill(null));
+        const visitado = Array.from({ length: FILAS }, () => new Array(COLUMNAS).fill(false));
+        const padre    = Array.from({ length: FILAS }, () => new Array(COLUMNAS).fill(null));
         const cola     = [inicio];
-        visitado[inicio.r][inicio.c] = true;
+        visitado[inicio.fila][inicio.columna] = true;
 
-        const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+        const direcciones = [[-1,0],[1,0],[0,-1],[0,1]];
 
         while (cola.length) {
             const actual = cola.shift();
-            if (actual.r === fin.r && actual.c === fin.c) {
+            if (actual.fila === fin.fila && actual.columna === fin.columna) {
                 const camino = [];
                 let nodo = actual;
                 while (nodo) {
                     camino.unshift(nodo);
-                    nodo = padre[nodo.r][nodo.c];
+                    nodo = padre[nodo.fila][nodo.columna];
                 }
                 this.rutaCalculada = camino;
                 return camino;
             }
-            for (const [dr, dc] of dirs) {
-                const nr = actual.r + dr;
-                const nc = actual.c + dc;
-                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && !visitado[nr][nc] && this.grilla[nr][nc] !== 0) {
-                    visitado[nr][nc] = true;
-                    padre[nr][nc] = actual;
-                    cola.push({ r: nr, c: nc });
+            for (const [deltaFila, deltaColumna] of direcciones) {
+                const nuevaFila    = actual.fila    + deltaFila;
+                const nuevaColumna = actual.columna + deltaColumna;
+                if (
+                    nuevaFila >= 0 && nuevaFila < FILAS &&
+                    nuevaColumna >= 0 && nuevaColumna < COLUMNAS &&
+                    !visitado[nuevaFila][nuevaColumna] &&
+                    this.grilla[nuevaFila][nuevaColumna] !== 0
+                ) {
+                    visitado[nuevaFila][nuevaColumna] = true;
+                    padre[nuevaFila][nuevaColumna] = actual;
+                    cola.push({ fila: nuevaFila, columna: nuevaColumna });
                 }
             }
         }
@@ -356,155 +358,184 @@ class ModeloMapa {
         this.rutaCalculada = null;
     }
 }
-//vista
+
+//Vista
 class VistaMapa {
     constructor() {
-        this.canvas   = document.getElementById('map');
-        this.ctx      = this.canvas.getContext('2d');
-        this.envoltura = document.getElementById('map-canvas-wrap');
+        this.lienzo        = document.getElementById('map');
+        this.lapiz         = this.lienzo.getContext('2d');
+        this.envoltura     = document.getElementById('map-canvas-wrap');
         this.contenedorMapa = document.getElementById('map-wrap');
         this.panelEntrada   = document.getElementById('entry-panel');
 
-        this.canvas.width  = W;
-        this.canvas.height = H;
+        this.lienzo.width  = ANCHO;
+        this.lienzo.height = ALTO;
 
         this.escala = 1.0;
-        this.tx = 0;
-        this.ty = 0;
+        this.desplazamientoX = 0;
+        this.desplazamientoY = 0;
     }
 
     aplicarTransformacion() {
-        this.envoltura.style.transform = `translate(${this.tx}px,${this.ty}px) scale(${this.escala})`;
+        this.envoltura.style.transform = `translate(${this.desplazamientoX}px,${this.desplazamientoY}px) scale(${this.escala})`;
         document.getElementById('sb-zoom').textContent = Math.round(this.escala * 100) + '%';
         this.actualizarBarraEscala();
     }
 
     actualizarBarraEscala() {
-        const px50m = (50 / 5) * CELL * this.escala;
-        document.getElementById('scale-line').style.width = Math.min(120, Math.max(40, px50m)) + 'px';
+        const pixeles50m = (50 / 5) * CELDA * this.escala;
+        document.getElementById('scale-line').style.width = Math.min(120, Math.max(40, pixeles50m)) + 'px';
     }
 
     centrarMapa() {
-        this.tx = (this.contenedorMapa.clientWidth  - W * this.escala) / 2;
-        this.ty = (this.contenedorMapa.clientHeight - H * this.escala) / 2;
+        this.desplazamientoX = (this.contenedorMapa.clientWidth  - ANCHO * this.escala) / 2;
+        this.desplazamientoY = (this.contenedorMapa.clientHeight - ALTO  * this.escala) / 2;
         this.aplicarTransformacion();
     }
 
     dibujar(modelo) {
-        const ctx = this.ctx;
-        ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, W, H);
+        const lapiz = this.lapiz;
+        lapiz.clearRect(0, 0, ANCHO, ALTO);
+        lapiz.fillStyle = '#ffffff';
+        lapiz.fillRect(0, 0, ANCHO, ALTO);
 
         // Celdas rellenas
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                const t = modelo.grilla[r][c];
-                if (t === 0) continue;
-                ctx.fillStyle = COLORS[t] || '#cccccc';
-                ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+        for (let fila = 0; fila < FILAS; fila++) {
+            for (let columna = 0; columna < COLUMNAS; columna++) {
+                const tipo = modelo.grilla[fila][columna];
+                if (tipo === 0) continue;
+                lapiz.fillStyle = COLORES[tipo] || '#cccccc';
+                lapiz.fillRect(columna * CELDA, fila * CELDA, CELDA, CELDA);
             }
         }
 
         // Bordes estructurales
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                const t = modelo.grilla[r][c];
-                if (t === 0) continue;
-                const s = STROKE[t];
-                if (!s) continue;
-                ctx.strokeStyle = s;
-                ctx.lineWidth = 1.5;
+        for (let fila = 0; fila < FILAS; fila++) {
+            for (let columna = 0; columna < COLUMNAS; columna++) {
+                const tipo = modelo.grilla[fila][columna];
+                if (tipo === 0) continue;
+                const colorBorde = BORDE[tipo];
+                if (!colorBorde) continue;
+                lapiz.strokeStyle = colorBorde;
+                lapiz.lineWidth = 1.5;
 
-                if (c === 0 || modelo.grilla[r][c - 1] !== t) {
-                    ctx.beginPath(); ctx.moveTo(c * CELL, r * CELL); ctx.lineTo(c * CELL, (r + 1) * CELL); ctx.stroke();
+                // Borde izquierdo
+                if (columna === 0 || modelo.grilla[fila][columna - 1] !== tipo) {
+                    lapiz.beginPath();
+                    lapiz.moveTo(columna * CELDA, fila * CELDA);
+                    lapiz.lineTo(columna * CELDA, (fila + 1) * CELDA);
+                    lapiz.stroke();
                 }
-                if (c === COLS - 1 || modelo.grilla[r][c + 1] !== t) {
-                    ctx.beginPath(); ctx.moveTo((c + 1) * CELL, r * CELL); ctx.lineTo((c + 1) * CELL, (r + 1) * CELL); ctx.stroke();
+                // Borde derecho
+                if (columna === COLUMNAS - 1 || modelo.grilla[fila][columna + 1] !== tipo) {
+                    lapiz.beginPath();
+                    lapiz.moveTo((columna + 1) * CELDA, fila * CELDA);
+                    lapiz.lineTo((columna + 1) * CELDA, (fila + 1) * CELDA);
+                    lapiz.stroke();
                 }
-                if (r === 0 || modelo.grilla[r - 1][c] !== t) {
-                    ctx.beginPath(); ctx.moveTo(c * CELL, r * CELL); ctx.lineTo((c + 1) * CELL, r * CELL); ctx.stroke();
+                // Borde superior
+                if (fila === 0 || modelo.grilla[fila - 1][columna] !== tipo) {
+                    lapiz.beginPath();
+                    lapiz.moveTo(columna * CELDA, fila * CELDA);
+                    lapiz.lineTo((columna + 1) * CELDA, fila * CELDA);
+                    lapiz.stroke();
                 }
-                if (r === ROWS - 1 || modelo.grilla[r + 1][c] !== t) {
-                    ctx.beginPath(); ctx.moveTo(c * CELL, (r + 1) * CELL); ctx.lineTo((c + 1) * CELL, (r + 1) * CELL); ctx.stroke();
+                // Borde inferior
+                if (fila === FILAS - 1 || modelo.grilla[fila + 1][columna] !== tipo) {
+                    lapiz.beginPath();
+                    lapiz.moveTo(columna * CELDA, (fila + 1) * CELDA);
+                    lapiz.lineTo((columna + 1) * CELDA, (fila + 1) * CELDA);
+                    lapiz.stroke();
                 }
             }
         }
 
-        //ruta
+        // Ruta calculada
         if (modelo.rutaCalculada && modelo.rutaCalculada.length > 1) {
-            ctx.strokeStyle = '#c0392b';
-            ctx.lineWidth = 4;
-            ctx.lineCap  = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            modelo.rutaCalculada.forEach((nodo, i) => {
-                const x = nodo.c * CELL + CELL / 2;
-                const y = nodo.r * CELL + CELL / 2;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+            lapiz.strokeStyle = '#c0392b';
+            lapiz.lineWidth = 4;
+            lapiz.lineCap   = 'round';
+            lapiz.lineJoin  = 'round';
+            lapiz.beginPath();
+            modelo.rutaCalculada.forEach((nodo, indice) => {
+                const posX = nodo.columna * CELDA + CELDA / 2;
+                const posY = nodo.fila    * CELDA + CELDA / 2;
+                if (indice === 0) lapiz.moveTo(posX, posY);
+                else              lapiz.lineTo(posX, posY);
             });
-            ctx.stroke();
+            lapiz.stroke();
         }
 
-        // origen y destino
-        if (modelo.nodoOrigen)  this.dibujarPin(modelo.nodoOrigen.c * CELL + CELL / 2,  modelo.nodoOrigen.r * CELL + CELL / 2,  '#27ae60');
-        if (modelo.nodoDestino) this.dibujarPin(modelo.nodoDestino.c * CELL + CELL / 2, modelo.nodoDestino.r * CELL + CELL / 2, '#c0392b');
+        // Marcadores de origen y destino
+        if (modelo.nodoOrigen)
+            this.dibujarMarcador(
+                modelo.nodoOrigen.columna * CELDA + CELDA / 2,
+                modelo.nodoOrigen.fila    * CELDA + CELDA / 2,
+                '#27ae60'
+            );
+        if (modelo.nodoDestino)
+            this.dibujarMarcador(
+                modelo.nodoDestino.columna * CELDA + CELDA / 2,
+                modelo.nodoDestino.fila    * CELDA + CELDA / 2,
+                '#c0392b'
+            );
 
-        // Etiquetas
-        ctx.textAlign    = 'center';
-        ctx.textBaseline = 'middle';
+        // Etiquetas de texto
+        lapiz.textAlign    = 'center';
+        lapiz.textBaseline = 'middle';
         modelo.etiquetas.forEach(etq => {
-            ctx.font      = `${etq.negrita ? '600' : '400'} ${etq.tam}px 'IBM Plex Mono', monospace`;
-            ctx.fillStyle = '#1a1a1a';
-            const lineas  = etq.texto.split('\n');
-            const altLinea = etq.tam * 1.3;
-            const yBase   = etq.r * CELL - ((lineas.length - 1) * altLinea) / 2;
-            lineas.forEach((linea, i) => {
-                ctx.fillText(linea, etq.c * CELL, yBase + i * altLinea);
+            lapiz.font      = `${etq.negrita ? '600' : '400'} ${etq.tamano}px 'IBM Plex Mono', monospace`;
+            lapiz.fillStyle = '#1a1a1a';
+            const lineas    = etq.texto.split('\n');
+            const alturaLinea = etq.tamano * 1.3;
+            const baseY     = etq.fila * CELDA - ((lineas.length - 1) * alturaLinea) / 2;
+            lineas.forEach((linea, indice) => {
+                lapiz.fillText(linea, etq.columna * CELDA, baseY + indice * alturaLinea);
             });
         });
     }
 
-    dibujarPin(x, y, color) {
-        this.ctx.fillStyle = color;
-        this.ctx.beginPath(); this.ctx.arc(x, y, 7, 0, Math.PI * 2); this.ctx.fill();
-        this.ctx.strokeStyle = '#fff';
-        this.ctx.lineWidth = 2;
-        this.ctx.stroke();
+    dibujarMarcador(posX, posY, color) {
+        this.lapiz.fillStyle = color;
+        this.lapiz.beginPath();
+        this.lapiz.arc(posX, posY, 7, 0, Math.PI * 2);
+        this.lapiz.fill();
+        this.lapiz.strokeStyle = '#fff';
+        this.lapiz.lineWidth = 2;
+        this.lapiz.stroke();
     }
 
     alternarPanelEntrada() { this.panelEntrada.classList.toggle('visible'); }
     cerrarPanelEntrada()   { this.panelEntrada.classList.remove('visible'); }
 
     actualizarUI(modelo) {
-        const elOrigen = document.getElementById('origin-name');
-        const elDest   = document.getElementById('dest-name');
-        const btnCalc  = document.getElementById('calc-route-btn');
+        const elementoOrigen  = document.getElementById('origin-name');
+        const elementoDestino = document.getElementById('dest-name');
+        const botonCalcular   = document.getElementById('calc-route-btn');
 
-        elOrigen.textContent = modelo.nodoOrigen
-            ? `Fila ${modelo.nodoOrigen.r}, Col ${modelo.nodoOrigen.c}`
+        elementoOrigen.textContent = modelo.nodoOrigen
+            ? `Fila ${modelo.nodoOrigen.fila}, Col ${modelo.nodoOrigen.columna}`
             : 'Sin seleccionar';
-        elOrigen.classList.toggle('set', !!modelo.nodoOrigen);
+        elementoOrigen.classList.toggle('set', !!modelo.nodoOrigen);
 
-        elDest.textContent = modelo.nodoDestino
-            ? `Fila ${modelo.nodoDestino.r}, Col ${modelo.nodoDestino.c}`
+        elementoDestino.textContent = modelo.nodoDestino
+            ? `Fila ${modelo.nodoDestino.fila}, Col ${modelo.nodoDestino.columna}`
             : 'Sin seleccionar';
-        elDest.classList.toggle('set', !!modelo.nodoDestino);
+        elementoDestino.classList.toggle('set', !!modelo.nodoDestino);
 
-        btnCalc.disabled = !(modelo.nodoOrigen && modelo.nodoDestino);
+        botonCalcular.disabled = !(modelo.nodoOrigen && modelo.nodoDestino);
     }
 }
 
-//controller
+//Controlador
 class ControladorMapa {
     constructor(modelo, vista) {
         this.modelo        = modelo;
         this.vista         = vista;
         this.modoActual    = 'view';
         this.arrastrando   = false;
-        this.startX        = 0;
-        this.startY        = 0;
+        this.inicioX       = 0;
+        this.inicioY       = 0;
         this.lugaresEnMapa = lugaresEnMapa;
     }
 
@@ -528,25 +559,25 @@ class ControladorMapa {
 
         document.getElementById('calc-route-btn').addEventListener('click', () => {
             const ruta = this.modelo.encontrarRuta();
-            const infoEl = document.getElementById('route-info');
-            infoEl.textContent = ruta
+            const elementoInfo = document.getElementById('route-info');
+            elementoInfo.textContent = ruta
                 ? `Distancia: ~${ruta.length * 5} metros (${ruta.length} celdas)`
-                : 'No se encontró una ruta viable.';
+                : 'No se encontro una ruta viable.';
             this.vista.dibujar(this.modelo);
         });
 
-        // Zoom con rueda
-        this.vista.contenedorMapa.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const rect     = this.vista.contenedorMapa.getBoundingClientRect();
-            const mx       = e.clientX - rect.left;
-            const my       = e.clientY - rect.top;
-            const escalaAnterior = this.vista.escala;
-            const factor   = e.deltaY < 0 ? 1.12 : 0.89;
-            const nuevaEscala = Math.min(4, Math.max(0.2, escalaAnterior * factor));
+        // Zoom con rueda del raton
+        this.vista.contenedorMapa.addEventListener('wheel', (evento) => {
+            evento.preventDefault();
+            const rectangulo      = this.vista.contenedorMapa.getBoundingClientRect();
+            const ratonX          = evento.clientX - rectangulo.left;
+            const ratonY          = evento.clientY - rectangulo.top;
+            const escalaAnterior  = this.vista.escala;
+            const factor          = evento.deltaY < 0 ? 1.12 : 0.89;
+            const nuevaEscala     = Math.min(4, Math.max(0.2, escalaAnterior * factor));
 
-            this.vista.tx = mx - (mx - this.vista.tx) * (nuevaEscala / escalaAnterior);
-            this.vista.ty = my - (my - this.vista.ty) * (nuevaEscala / escalaAnterior);
+            this.vista.desplazamientoX = ratonX - (ratonX - this.vista.desplazamientoX) * (nuevaEscala / escalaAnterior);
+            this.vista.desplazamientoY = ratonY - (ratonY - this.vista.desplazamientoY) * (nuevaEscala / escalaAnterior);
             this.vista.escala = nuevaEscala;
             this.vista.aplicarTransformacion();
         }, { passive: false });
@@ -558,25 +589,25 @@ class ControladorMapa {
         document.getElementById('entry-close').addEventListener('click',     () => this.vista.cerrarPanelEntrada());
 
         document.getElementById('entry-go-btn').addEventListener('click', () => {
-            this.modelo.nodoOrigen = { r: 6, c: 32 };
+            this.modelo.nodoOrigen = { fila: 6, columna: 32 };
             this.vista.actualizarUI(this.modelo);
             this.vista.cerrarPanelEntrada();
             this.vista.dibujar(this.modelo);
         });
 
-        //Arrastre 
+        // Arrastre del mapa
         const contenedor = this.vista.contenedorMapa;
-        contenedor.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.zoom-btn') || e.target.closest('#ver-entrada-btn') || e.target.closest('#entry-panel')) return;
+        contenedor.addEventListener('mousedown', (evento) => {
+            if (evento.target.closest('.zoom-btn') || evento.target.closest('#ver-entrada-btn') || evento.target.closest('#entry-panel')) return;
             this.arrastrando = true;
             contenedor.classList.add('grabbing');
-            this.startX = e.clientX - this.vista.tx;
-            this.startY = e.clientY - this.vista.ty;
+            this.inicioX = evento.clientX - this.vista.desplazamientoX;
+            this.inicioY = evento.clientY - this.vista.desplazamientoY;
         });
-        window.addEventListener('mousemove', (e) => {
+        window.addEventListener('mousemove', (evento) => {
             if (!this.arrastrando) return;
-            this.vista.tx = e.clientX - this.startX;
-            this.vista.ty = e.clientY - this.startY;
+            this.vista.desplazamientoX = evento.clientX - this.inicioX;
+            this.vista.desplazamientoY = evento.clientY - this.inicioY;
             this.vista.aplicarTransformacion();
         });
         window.addEventListener('mouseup', () => {
@@ -585,45 +616,45 @@ class ControladorMapa {
             contenedor.classList.remove('grabbing');
         });
 
-
-        //celda
-        this.vista.canvas.addEventListener('click', (e) => {
-            const rect  = this.vista.canvas.getBoundingClientRect();
-            const clickX = (e.clientX - rect.left) / this.vista.escala;
-            const clickY = (e.clientY - rect.top)  / this.vista.escala;
-            const c = Math.floor(clickX / CELL);
-            const r = Math.floor(clickY / CELL);
-            if (r >= 0 && r < ROWS && c >= 0 && c < COLS) this.manejarClickCelda(r, c);
+        // Click en celda
+        this.vista.lienzo.addEventListener('click', (evento) => {
+            const rectangulo = this.vista.lienzo.getBoundingClientRect();
+            const clicX = (evento.clientX - rectangulo.left) / this.vista.escala;
+            const clicY = (evento.clientY - rectangulo.top)  / this.vista.escala;
+            const columna = Math.floor(clicX / CELDA);
+            const fila    = Math.floor(clicY / CELDA);
+            if (fila >= 0 && fila < FILAS && columna >= 0 && columna < COLUMNAS)
+                this.manejarClickCelda(fila, columna);
         });
 
-        //Buscar
+        // Buscar lugar
         document.getElementById('search-btn').addEventListener('click', () => this.ejecutarBusqueda());
-        document.getElementById('search-peticion').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') this.ejecutarBusqueda();
+        document.getElementById('search-peticion').addEventListener('keydown', (evento) => {
+            if (evento.key === 'Enter') this.ejecutarBusqueda();
         });
     }
 
     cambiarModo(modo) {
         this.modoActual = modo;
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mode-btn').forEach(boton => boton.classList.remove('active'));
         if (modo === 'view')   document.getElementById('btn-view').classList.add('active');
         if (modo === 'origin') document.getElementById('btn-origin').classList.add('active');
         if (modo === 'dest')   document.getElementById('btn-dest').classList.add('active');
     }
 
-    manejarClickCelda(r, c) {
-        const nombre = this.modelo.obtenerNombreZona(r, c);
-        document.getElementById('cx').textContent    = c;
-        document.getElementById('cy').textContent    = r;
-        document.getElementById('czone').textContent = nombre;
-        document.getElementById('sb-sel').innerHTML  = `SELECCIÓN: <span>Fila ${r}, Col ${c} (${nombre})</span>`;
+    manejarClickCelda(fila, columna) {
+        const nombreZona = this.modelo.obtenerNombreZona(fila, columna);
+        document.getElementById('cx').textContent    = columna;
+        document.getElementById('cy').textContent    = fila;
+        document.getElementById('czone').textContent = nombreZona;
+        document.getElementById('sb-sel').innerHTML  = `SELECCION: <span>Fila ${fila}, Col ${columna} (${nombreZona})</span>`;
 
         if (this.modoActual === 'origin') {
-            this.modelo.nodoOrigen = { r, c };
+            this.modelo.nodoOrigen = { fila, columna };
             this.vista.actualizarUI(this.modelo);
             this.cambiarModo('view');
         } else if (this.modoActual === 'dest') {
-            this.modelo.nodoDestino = { r, c };
+            this.modelo.nodoDestino = { fila, columna };
             this.vista.actualizarUI(this.modelo);
             this.cambiarModo('view');
         }
@@ -633,37 +664,37 @@ class ControladorMapa {
     ejecutarBusqueda() {
         const consulta = document.getElementById('search-peticion').value.trim().toLowerCase();
         if (!consulta) return;
-        const encontrado = this.lugaresEnMapa.find(item => item.nombre.toLowerCase().includes(consulta));
+        const encontrado = this.lugaresEnMapa.find(lugar => lugar.nombre.toLowerCase().includes(consulta));
         if (encontrado) {
-            this.enfocarCelda(encontrado.r, encontrado.c);
-            this.manejarClickCelda(encontrado.r, encontrado.c);
+            this.enfocarCelda(encontrado.fila, encontrado.columna);
+            this.manejarClickCelda(encontrado.fila, encontrado.columna);
         } else {
-            alert('No se encontró ningún lugar con ese nombre.');
+            alert('No se encontro ningun lugar con ese nombre.');
         }
     }
 
-    enfocarCelda(r, c) {
-        const aw = this.vista.contenedorMapa.clientWidth;
-        const ah = this.vista.contenedorMapa.clientHeight;
+    enfocarCelda(fila, columna) {
+        const anchoVentana  = this.vista.contenedorMapa.clientWidth;
+        const altoVentana   = this.vista.contenedorMapa.clientHeight;
         this.vista.escala = 2.0;
-        this.vista.tx = aw / 2 - (c * CELL + CELL / 2) * this.vista.escala;
-        this.vista.ty = ah / 2 - (r * CELL + CELL / 2) * this.vista.escala;
+        this.vista.desplazamientoX = anchoVentana / 2 - (columna * CELDA + CELDA / 2) * this.vista.escala;
+        this.vista.desplazamientoY = altoVentana  / 2 - (fila    * CELDA + CELDA / 2) * this.vista.escala;
         this.vista.aplicarTransformacion();
     }
 
     zoomCentro(factor) {
         const escalaAnterior = this.vista.escala;
         const nuevaEscala    = Math.min(4, Math.max(0.2, escalaAnterior * factor));
-        const cx = this.vista.contenedorMapa.clientWidth  / 2;
-        const cy = this.vista.contenedorMapa.clientHeight / 2;
-        this.vista.tx = cx - (cx - this.vista.tx) * (nuevaEscala / escalaAnterior);
-        this.vista.ty = cy - (cy - this.vista.ty) * (nuevaEscala / escalaAnterior);
+        const centroX = this.vista.contenedorMapa.clientWidth  / 2;
+        const centroY = this.vista.contenedorMapa.clientHeight / 2;
+        this.vista.desplazamientoX = centroX - (centroX - this.vista.desplazamientoX) * (nuevaEscala / escalaAnterior);
+        this.vista.desplazamientoY = centroY - (centroY - this.vista.desplazamientoY) * (nuevaEscala / escalaAnterior);
         this.vista.escala = nuevaEscala;
         this.vista.aplicarTransformacion();
     }
 }
 
-//main
+//Inicio
 document.addEventListener('DOMContentLoaded', () => {
     const modelo      = new ModeloMapa();
     const vista       = new VistaMapa();
